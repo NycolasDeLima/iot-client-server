@@ -12,6 +12,7 @@ import (
 
 type Mensagem struct {
 	Tipo string `json:"tipo"`
+	ID   string `json:"id"`
 	Dado string `json:"dado"`
 }
 
@@ -28,6 +29,8 @@ func main() {
 	var msg Mensagem
 
 	defer conn.Close()
+
+	msg.Tipo = "SENSOR"
 
 	fmt.Println("Digite um número: ")
 

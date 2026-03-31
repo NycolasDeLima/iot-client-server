@@ -51,6 +51,7 @@ func main() {
 
 	for {
 
+		var msgRec MensagemTCP
 		fmt.Println("Conectado")
 		buffer, err := reader.ReadString('\n')
 		if err != nil {
@@ -58,12 +59,15 @@ func main() {
 			return
 		}
 
-		err = json.Unmarshal([]byte(buffer), &msg)
+		err = json.Unmarshal([]byte(buffer), &msgRec)
 		if err != nil {
 			fmt.Println("Erro ao Ler Dados do Json")
 			continue
 		}
 
-		fmt.Println("Recebido:", msg.Dado)
+		fmt.Println("Recebido:", msgRec.Tipo)
+		fmt.Println("Recebido:", msgRec.ID)
+		fmt.Println("Recebido:", msgRec.Dado)
+		fmt.Println("Recebido:", msgRec.Acao)
 	}
 }

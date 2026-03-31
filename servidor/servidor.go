@@ -12,9 +12,11 @@ import (
 // ============= variavel global ===============
 
 var (
-	atuadores = make(map[string]net.Conn)
-	clientes  = make(map[string]net.Conn)
+	atuadoresConn = make(map[string]net.Conn)
+	clientes      = make(map[string]net.Conn)
+
 	sensores  = make(map[string]Sensor)
+	atuadores = make(map[string]Atuador)
 	mutex     sync.Mutex
 )
 
@@ -29,14 +31,21 @@ type MensagemTCP struct {
 
 type MensagemUDP struct {
 	Tipo string `json:"tipo"`
+	ID   string `json:"id"`
 	Dado string `json:"dado"`
 }
 
 type Sensor struct {
 	Tipo        string `json:"tipo"`
+	ID          string `json:"id"`
 	Dado        string `json:"dado"`
 	UltimoVisto time.Time
-	Online      bool
+}
+
+type Atuador struct {
+	Tipo   string `json:"tipo"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 // ========= tratar ============
@@ -48,11 +57,11 @@ func tratarSensor(msg MensagemUDP, clientAddr *net.UDPAddr) {
 
 	defer mutex.Unlock()
 
-	sensores[msg.Tipo] = Sensor{
+	sensores[msg.ID] = Sensor{
 		Tipo:        msg.Tipo,
+		ID:          msg.ID,
 		Dado:        msg.Dado,
 		UltimoVisto: time.Now(),
-		Online:      true,
 	}
 
 }
@@ -79,7 +88,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 		if msg.Acao == "ACAO ATUADOR" {
 
 			mutex.Lock()
-			atuadorConn, existe := atuadores[msg.ID]
+			atuadorConn, existe := atuadoresConn[msg.ID]
 			mutex.Unlock()
 
 			if !existe {
@@ -107,7 +116,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			fmt.Println(lista)
 
-			data, _ := json.Marshal(lista)
+			data, _ := json.Marshal(sensores)
 			msgEnv := MensagemTCP{
 				Tipo: "Servidor",
 				ID:   "nil",
@@ -129,7 +138,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			fmt.Println(lista)
 
-			data, _ := json.Marshal(lista)
+			data, _ := json.Marshal(atuadores)
 			msgEnv := MensagemTCP{
 				Tipo: "Servidor",
 				ID:   "nil",
@@ -199,7 +208,7 @@ func tratarConexaoTcp(conn net.Conn) {
 		id := msg.ID
 
 		mutex.Lock()
-		atuadores[id] = conn
+		atuadoresConn[id] = conn
 		mutex.Unlock()
 
 		go tratarAtuador(id, conn, reader)
@@ -223,7 +232,7 @@ func removerAtuador(id string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	delete(atuadores, id)
+	delete(atuadoresConn, id)
 
 	fmt.Println("Atuador: ", id, "removido")
 }

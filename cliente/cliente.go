@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 type MensagemTCP struct {
@@ -14,6 +15,13 @@ type MensagemTCP struct {
 	ID   string `json:"id"`
 	Dado string `json:"dado"`
 	Acao string `json:"acao"`
+}
+
+type Sensor struct {
+	Tipo        string `json:"tipo"`
+	ID          string `json:"id"`
+	Dado        string `json:"dado"`
+	UltimoVisto time.Time
 }
 
 func enviar(conn net.Conn, id string, dado string, acao string) {
@@ -107,7 +115,9 @@ func main() {
 				continue
 			}
 
-			var lista []string
+			// var lista []string
+
+			var lista map[string]Sensor
 
 			err = json.Unmarshal([]byte(msg.Dado), &lista)
 			if err != nil {
@@ -115,10 +125,14 @@ func main() {
 				continue
 			}
 
-			fmt.Println("\n======SENSORES======")
+			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
+			fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Tipo", "Dado", "UltimoVisto")
+			fmt.Println("----------------------------------------------------------")
 
 			for _, sensor := range lista {
-				fmt.Println(sensor)
+				fmt.Printf("%-5s | %-15s | %-15s | %-10s\n",
+					sensor.ID, sensor.Tipo, sensor.Dado, sensor.UltimoVisto.Format("15:04:05"),
+				)
 			}
 
 		case "2":
@@ -129,6 +143,8 @@ func main() {
 
 			enviar(conn, id, "nil", "VER DADO SENSOR")
 
+		case "3":
+
 		case "4":
 
 			fmt.Println("\nDigite o id do Atuador: ")
@@ -137,7 +153,7 @@ func main() {
 
 			fmt.Println("\nDigite a ação: ")
 			dado, _ := input.ReadString('\n')
-			dado = strings.TrimSpace(id)
+			dado = strings.TrimSpace(dado)
 
 			enviar(conn, id, dado, "ACAO ATUADOR")
 
