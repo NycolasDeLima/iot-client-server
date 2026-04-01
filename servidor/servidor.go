@@ -161,7 +161,7 @@ func tratarAtuador(id string, conn net.Conn, reader *bufio.Reader) {
 		removerAtuador(id)
 	}()
 
-	fmt.Println("Tratando atuador: ", id)
+	fmt.Println("Atuador conectado: ", id)
 
 	for {
 		buffer, err := reader.ReadString('\n')
@@ -179,6 +179,16 @@ func tratarAtuador(id string, conn net.Conn, reader *bufio.Reader) {
 		}
 
 		fmt.Println("Recebido:", msg.Acao)
+
+		mutex.Lock()
+
+		atuadores[id] = Atuador{
+			Tipo:   "ATUADOR",
+			ID:     id,
+			Status: msg.Dado,
+		}
+
+		mutex.Unlock()
 	}
 }
 
@@ -209,7 +219,14 @@ func tratarConexaoTcp(conn net.Conn) {
 
 		mutex.Lock()
 		atuadoresConn[id] = conn
+		atuadores[id] = Atuador{
+			Tipo:   "ATUADOR",
+			ID:     id,
+			Status: msg.Dado,
+		}
 		mutex.Unlock()
+
+		fmt.Println("aqui 1")
 
 		go tratarAtuador(id, conn, reader)
 	}
@@ -234,7 +251,7 @@ func removerAtuador(id string) {
 
 	delete(atuadoresConn, id)
 
-	fmt.Println("Atuador: ", id, "removido")
+	fmt.Println("Atuador desconectado: ", id)
 }
 
 func removerSensor() {

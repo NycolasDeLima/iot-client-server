@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"os"
+	"strings"
 )
 
 type MensagemTCP struct {
@@ -30,6 +32,12 @@ func enviar(conn net.Conn, id string, dado string, acao string) {
 
 func main() {
 
+	fmt.Println("id: ")
+	input := bufio.NewReader(os.Stdin)
+
+	id, _ := input.ReadString('\n')
+	id = strings.TrimSpace(id)
+
 	conn, err := net.Dial("tcp", "server:8000")
 	if err != nil {
 		panic(err)
@@ -40,8 +48,8 @@ func main() {
 
 	msg := MensagemTCP{
 		Tipo: "ATUADOR",
-		ID:   "ATUADOR A",
-		Dado: "3",
+		ID:   id,
+		Dado: "inicializado",
 		Acao: "nil",
 	}
 
@@ -65,9 +73,10 @@ func main() {
 			continue
 		}
 
-		fmt.Println("Recebido:", msgRec.Tipo)
-		fmt.Println("Recebido:", msgRec.ID)
 		fmt.Println("Recebido:", msgRec.Dado)
-		fmt.Println("Recebido:", msgRec.Acao)
+		msg.Dado = msgRec.Dado
+
+		jsonData, _ := json.Marshal(msg)
+		conn.Write([]byte(string(jsonData) + "\n"))
 	}
 }

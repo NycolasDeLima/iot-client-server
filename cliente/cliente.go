@@ -24,6 +24,12 @@ type Sensor struct {
 	UltimoVisto time.Time
 }
 
+type Atuador struct {
+	Tipo   string `json:"tipo"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
 func enviar(conn net.Conn, id string, dado string, acao string) {
 
 	msg := MensagemTCP{
@@ -144,6 +150,42 @@ func main() {
 			enviar(conn, id, "nil", "VER DADO SENSOR")
 
 		case "3":
+
+			enviar(conn, "nil", "nil", "LISTAR ATUADORES")
+
+			fmt.Println("Aguardando mensagem do servidor...")
+
+			buffer, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Println("Erro no recebimento da Resposta")
+				continue
+			}
+
+			err = json.Unmarshal([]byte(buffer), &msg)
+			if err != nil {
+				fmt.Println("Erro ao Ler Dados do Json")
+				continue
+			}
+
+			// var lista []string
+
+			var lista map[string]Atuador
+
+			err = json.Unmarshal([]byte(msg.Dado), &lista)
+			if err != nil {
+				fmt.Println("Erro ao Ler Dados da Lista")
+				continue
+			}
+
+			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
+			fmt.Printf("%-5s | %-15s | %-15s\n", "ID", "Tipo", "Status")
+			fmt.Println("----------------------------------------------------------")
+
+			for _, atuador := range lista {
+				fmt.Printf("%-5s | %-15s | %-15s\n",
+					atuador.ID, atuador.Tipo, atuador.Status,
+				)
+			}
 
 		case "4":
 
