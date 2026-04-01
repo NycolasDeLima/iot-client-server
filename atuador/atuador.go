@@ -60,7 +60,7 @@ func main() {
 	for {
 
 		var msgRec MensagemTCP
-		fmt.Println("Conectado")
+		fmt.Println("Conectado ao servidor: ", conn.LocalAddr().String())
 		buffer, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Println("Servidor desconectado")

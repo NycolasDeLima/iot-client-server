@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// ================= structs ====================
+
 type MensagemTCP struct {
 	Tipo string `json:"tipo"`
 	ID   string `json:"id"`
@@ -29,6 +31,8 @@ type Atuador struct {
 	ID     string `json:"id"`
 	Status string `json:"status"`
 }
+
+// ======================== functions ============
 
 func enviar(conn net.Conn, id string, dado string, acao string) {
 
@@ -59,6 +63,8 @@ func ler(reader *bufio.Reader, msg MensagemTCP) error {
 
 	return nil
 }
+
+// =============== main
 
 func main() {
 
@@ -148,6 +154,59 @@ func main() {
 			id = strings.TrimSpace(id)
 
 			enviar(conn, id, "nil", "VER DADO SENSOR")
+
+			fmt.Println("\nLendo dados do sensor... Aperte ENTER para sair")
+
+			stopChan := make(chan bool)
+
+			// 🔹 Goroutine que recebe dados
+			go func() {
+				for {
+					select {
+					case <-stopChan:
+						return
+					default:
+						buffer, err := reader.ReadString('\n')
+						if err != nil {
+							fmt.Println("Erro ao receber")
+							continue
+						}
+
+						var msg MensagemTCP
+						err = json.Unmarshal([]byte(buffer), &msg)
+						if err != nil {
+							fmt.Println("Erro ao Ler Mensagem do Servidor")
+							continue
+						}
+
+						if msg.Dado == "SENSOR NÃO ENCONTRADO" {
+							fmt.Println("Sensor não encontrado")
+							continue
+						}
+
+						var sensor Sensor
+						err = json.Unmarshal([]byte(msg.Dado), &sensor)
+						if err != nil {
+							fmt.Println("Erro ao Ler Dados do sensor")
+							continue
+						}
+
+						fmt.Printf("Sensor %s | Dado: %s | Hora: %s\n",
+							sensor.ID,
+							sensor.Dado,
+							sensor.UltimoVisto.In(time.Local).Format("15:04:05"),
+						)
+					}
+				}
+			}()
+
+			input.ReadString('\n')
+
+			close(stopChan)
+
+			enviar(conn, id, "nil", "REMOVER INSCRITO")
+
+			fmt.Println("Leitura de sensor finalizada")
 
 		case "3":
 

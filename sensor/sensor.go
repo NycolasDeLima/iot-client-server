@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -26,27 +28,61 @@ func main() {
 	}
 
 	conn, err := net.DialUDP("udp", nil, serverAddrUDP)
-	var msg Mensagem
+	if err != nil {
+		panic(err)
+	}
+
+	var (
+		msg      Mensagem
+		dado     int
+		estado   string
+		handlers = map[string]func(int, string) int{
+			"bpm": ajustarBPM,
+			//"admin":  tratarAdmin,
+			//"user":   tratarUser,
+		}
+	)
 
 	defer conn.Close()
 
 	msg.Tipo = "SENSOR"
 
-	fmt.Println("Digite um número: ")
+	fmt.Println("Digite o tipo de Sensor: ")
 
-	msg.Dado, _ = input.ReadString('\n')
-	msg.Dado = strings.TrimSpace(msg.Dado)
+	tipoSensor, _ := input.ReadString('\n')
+	tipoSensor = strings.TrimSpace(tipoSensor)
 
-	fmt.Println("Digite um id: ")
-	msg.Tipo, _ = input.ReadString('\n')
-	msg.Tipo = strings.TrimSpace(msg.Tipo)
+	fmt.Println("\nDigite um id para o Sensor: ")
+	id, _ := input.ReadString('\n')
+	id = strings.TrimSpace(id)
+
+	msg.ID = tipoSensor + "_" + id
+
+	switch tipoSensor {
+
+	case "bpm":
+		dado = 75
+		estado = "repouso"
+	}
 
 	for {
-		time.Sleep(2 * time.Second)
+
+		if rand.Float64() < 0.01 {
+			estado = mudarEstado(tipoSensor)
+			fmt.Println("Mudou estado para:", estado)
+		}
+
+		if handler, ok := handlers[tipoSensor]; ok {
+			dado = handler(dado, estado)
+		}
+
+		msg.Dado = strconv.Itoa(dado)
 
 		jsondata, _ := json.Marshal(msg)
 
 		conn.Write([]byte(jsondata))
+
+		time.Sleep(100 * time.Millisecond)
 	}
 
 }
