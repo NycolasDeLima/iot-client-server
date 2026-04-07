@@ -10,6 +10,15 @@ import (
 	"time"
 )
 
+const (
+	//ENVIAR
+	ListarSensores  = "LISTAR SENSORES"
+	ListarAtuadores = "LISTAR ATUADORES"
+	AcaoAtuador     = "ACAO ATUADOR"
+	VerDadoSensor   = "VER DADO SENSOR"
+	RemoverInscrito = "REMOVER INSCRITO"
+)
+
 // ================= structs ====================
 
 type MensagemTCP struct {
@@ -34,7 +43,7 @@ type Atuador struct {
 
 // ======================== functions ============
 
-func enviar(conn net.Conn, id string, dado string, acao string) {
+func enviar(conn net.Conn, id string, dado string, acao string) error {
 
 	msg := MensagemTCP{
 		Tipo: "CLIENTE",
@@ -45,58 +54,107 @@ func enviar(conn net.Conn, id string, dado string, acao string) {
 
 	data, _ := json.Marshal(msg)
 
-	conn.Write([]byte(string(data) + "\n"))
-}
-
-func ler(reader *bufio.Reader, msg MensagemTCP) error {
-	buffer, err := reader.ReadString('\n')
+	_, err := conn.Write([]byte(string(data) + "\n"))
 	if err != nil {
-		fmt.Println("Erro no recebimento da Resposta")
-		return err
-	}
-
-	err = json.Unmarshal([]byte(buffer), &msg)
-	if err != nil {
-		fmt.Println("Erro ao Ler Dados do Json")
 		return err
 	}
 
 	return nil
 }
 
+func conectar() net.Conn {
+	for {
+		conn, err := net.Dial("tcp", "server:8000")
+		if err != nil {
+			fmt.Println("Conectando...")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		fmt.Println("Conectado ao servidor.")
+		return conn
+	}
+}
+
 // =============== main
 
 func main() {
 
-	var id string
+	var (
+		idCliente   string
+		tipoAtuador string
+		msg         MensagemTCP
+		errCon      bool = false
+	)
 
 	fmt.Print("Digite um id: ")
-	fmt.Scanln(&id)
+	fmt.Scanln(&idCliente)
+
+	idCliente = "CLIENTE_" + idCliente
 
 	fmt.Println("Conectando ao Servidor...")
 
-	conn, err := net.Dial("tcp", "server:8000")
-	if err != nil {
-		panic(err)
-	}
+	conn := conectar()
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
 
-	msg := MensagemTCP{
-		Tipo: "CLIENTE",
-		ID:   id,
-		Dado: "2",
-		Acao: "nil",
+	err := enviar(conn, idCliente, "nil", "nil")
+	if err != nil {
+		errCon = true
 	}
 
-	data, _ := json.Marshal(msg)
+	buffer, err := reader.ReadString('\n')
+	if err != nil {
+		errCon = true
+	}
+
+	err = json.Unmarshal([]byte(buffer), &msg)
+	if err != nil {
+		fmt.Println("Erro ao Ler Dados do Json")
+		errCon = true
+	}
+
+	if msg.Dado != "CLIENTE CONECTADO" {
+		fmt.Println("Conexão mal estabelecida")
+		errCon = true
+	}
 
 	input := bufio.NewReader(os.Stdin)
 
-	conn.Write(append(data, '\n'))
-
 	for {
+
+		if errCon {
+			fmt.Println("Servidor Desconectado. Tentando Reconexão")
+			conn.Close()
+			conn = conectar()
+			reader = bufio.NewReader(conn)
+
+			err := enviar(conn, idCliente, "nil", "nil")
+			if err != nil {
+				continue
+			}
+
+			buffer, err := reader.ReadString('\n')
+			if err != nil {
+				continue
+			}
+
+			err = json.Unmarshal([]byte(buffer), &msg)
+			if err != nil {
+				fmt.Println("Erro ao Ler Dados do Json")
+				continue
+			}
+
+			if msg.Dado != "CLIENTE CONECTADO" {
+				fmt.Println("Conexão mal estabelecida")
+				continue
+			}
+
+			errCon = false
+			continue
+
+		}
 		fmt.Println("\n===== MENU =====")
 		fmt.Println("1 - Visualizar sensores")
 		fmt.Println("2 - Visualizar dados do sensor")
@@ -111,13 +169,17 @@ func main() {
 		switch opcao {
 
 		case "1":
-			enviar(conn, "nil", "nil", "LISTAR SENSORES")
+			err = enviar(conn, "nil", "nil", ListarSensores)
+			if err != nil {
+				errCon = true
+				continue
+			}
 
 			fmt.Println("Aguardando mensagem do servidor...")
 
 			buffer, err := reader.ReadString('\n')
 			if err != nil {
-				fmt.Println("Erro no recebimento da Resposta")
+				errCon = true
 				continue
 			}
 
@@ -137,30 +199,46 @@ func main() {
 				continue
 			}
 
+			var sensorID string
+			var sensorTipo string
+
+			idx := strings.Index(msg.ID, "_")
+			if idx != -1 {
+				sensorTipo = msg.ID[:idx]
+				sensorID = msg.ID[idx+1:]
+			}
+
 			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
 			fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Tipo", "Dado", "UltimoVisto")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, sensor := range lista {
-				fmt.Printf("%-5s | %-15s | %-15s | %-10s\n",
-					sensor.ID, sensor.Tipo, sensor.Dado, sensor.UltimoVisto.Format("15:04:05"),
+				fmt.Printf("%-10s | %-15s | %-15s | %-10s\n",
+					sensorID, sensorTipo, sensor.Dado, sensor.UltimoVisto.Format("15:04:05"),
 				)
 			}
 
 		case "2":
 
 			fmt.Println("\nDigite o id do Sensor: ")
-			id, _ := input.ReadString('\n')
-			id = strings.TrimSpace(id)
+			dado, _ := input.ReadString('\n')
+			dado = strings.TrimSpace(dado)
 
-			enviar(conn, id, "nil", "VER DADO SENSOR")
+			err = enviar(conn, idCliente, dado, VerDadoSensor)
+			if err != nil {
+				errCon = true
+				continue
+			}
 
 			fmt.Println("\nLendo dados do sensor... Aperte ENTER para sair")
 
 			stopChan := make(chan bool)
+			done := make(chan bool)
 
 			// 🔹 Goroutine que recebe dados
 			go func() {
+
+				defer func() { done <- true }()
 				for {
 					select {
 					case <-stopChan:
@@ -168,8 +246,8 @@ func main() {
 					default:
 						buffer, err := reader.ReadString('\n')
 						if err != nil {
-							fmt.Println("Erro ao receber")
-							continue
+							errCon = true
+							return
 						}
 
 						var msg MensagemTCP
@@ -179,9 +257,14 @@ func main() {
 							continue
 						}
 
-						if msg.Dado == "SENSOR NÃO ENCONTRADO" {
-							fmt.Println("Sensor não encontrado")
-							continue
+						switch msg.Dado {
+						case "SENSOR NÃO ENCONTRADO":
+							fmt.Println("Sensor não encontrado\nAperte ENTER para sair")
+							return
+						case "SENSOR DESCONECTADO":
+							fmt.Println("Sensor Desconectado\nAperte ENTER para sair")
+							return
+
 						}
 
 						var sensor Sensor
@@ -204,19 +287,29 @@ func main() {
 
 			close(stopChan)
 
-			enviar(conn, id, "nil", "REMOVER INSCRITO")
+			<-done
+
+			err = enviar(conn, idCliente, dado, RemoverInscrito)
+			if err != nil {
+				errCon = true
+				continue
+			}
 
 			fmt.Println("Leitura de sensor finalizada")
 
 		case "3":
 
-			enviar(conn, "nil", "nil", "LISTAR ATUADORES")
+			err = enviar(conn, "nil", "nil", ListarAtuadores)
+			if err != nil {
+				errCon = true
+				continue
+			}
 
 			fmt.Println("Aguardando mensagem do servidor...")
 
 			buffer, err := reader.ReadString('\n')
 			if err != nil {
-				fmt.Println("Erro no recebimento da Resposta")
+				errCon = true
 				continue
 			}
 
@@ -236,27 +329,134 @@ func main() {
 				continue
 			}
 
+			var atuadID string
+			var atuadTipo string
+
+			idx := strings.Index(msg.ID, "_")
+			if idx != -1 {
+				atuadTipo = msg.ID[:idx]
+				atuadID = msg.ID[idx+1:]
+			}
+
 			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
-			fmt.Printf("%-5s | %-15s | %-15s\n", "ID", "Tipo", "Status")
+			fmt.Printf("%-10s | %-15s | %-15s\n", "ID", "Tipo", "Status")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, atuador := range lista {
-				fmt.Printf("%-5s | %-15s | %-15s\n",
-					atuador.ID, atuador.Tipo, atuador.Status,
+				fmt.Printf("%-10s | %-15s | %-15s\n",
+					atuadID, atuadTipo, atuador.Status,
 				)
 			}
 
 		case "4":
 
+			var dado string
+
+			fmt.Println("\n===== TIPO DO ATUADOR =====")
+			fmt.Println("1 - Alarme")
+			fmt.Println("2 - VMI")
+			fmt.Print("Escolha o tipo do Atuador: ")
+			tipoAtuador, _ = input.ReadString('\n')
+			tipoAtuador = strings.TrimSpace(tipoAtuador)
+
+			switch tipoAtuador {
+
+			case "1":
+				tipoAtuador = "alarme"
+
+			case "2":
+				tipoAtuador = "vmi"
+
+			default:
+				fmt.Println("\nOpção inválida!")
+				continue
+			}
+
 			fmt.Println("\nDigite o id do Atuador: ")
 			id, _ := input.ReadString('\n')
 			id = strings.TrimSpace(id)
+			id = tipoAtuador + "_" + id
 
-			fmt.Println("\nDigite a ação: ")
-			dado, _ := input.ReadString('\n')
-			dado = strings.TrimSpace(dado)
+			switch tipoAtuador {
 
-			enviar(conn, id, dado, "ACAO ATUADOR")
+			case "alarme":
+				fmt.Println("\n===== COMANDOS =====")
+				fmt.Println("1 - Ligar Alarme")
+				fmt.Println("2 - Desligar Alarme")
+				fmt.Print("Escolha um comando: ")
+				dado, _ = input.ReadString('\n')
+				dado = strings.TrimSpace(dado)
+
+				switch dado {
+				case "1":
+					fmt.Print("Digite a mensagem do alarme: ")
+					info, _ := input.ReadString('\n')
+					info = strings.TrimSpace(info)
+
+					dado = "LIGAR ALARME: " + info
+
+				case "2":
+					dado = "DESLIGAR ALARME"
+
+				default:
+					fmt.Println("\nOpção inválida!")
+					continue
+				}
+
+			case "vmi":
+				fmt.Println("\n===== COMANDOS =====")
+				fmt.Println("1 - Ligar VMI em modo controlado")
+				fmt.Println("2 - Ligar VMI em modo assisto-controlado")
+				fmt.Println("3 - Ligar VMI em modo espontâneo")
+				fmt.Println("4 - Desligar VMI")
+				fmt.Print("Escolha um comando: ")
+				dado, _ = input.ReadString('\n')
+				dado = strings.TrimSpace(dado)
+
+				switch dado {
+				case "1":
+					dado = "LIGAR VMI: MODO CONTROLADO"
+
+				case "2":
+					dado = "LIGAR VMI: MODO ASSISTO-CONTROLADO"
+
+				case "3":
+					dado = "LIGAR VMI: MODO ESPONTÂNEO"
+
+				case "4":
+					dado = "DESLIGAR VMI"
+
+				default:
+					fmt.Println("\nOpção inválida!")
+					continue
+				}
+
+			}
+
+			err = enviar(conn, id, dado, AcaoAtuador)
+			if err != nil {
+				errCon = true
+				continue
+			}
+
+			buffer, err := reader.ReadString('\n')
+			if err != nil {
+				errCon = true
+				continue
+			}
+
+			err = json.Unmarshal([]byte(buffer), &msg)
+			if err != nil {
+				fmt.Println("Erro ao Ler Dados do Json")
+				continue
+			}
+
+			switch msg.Dado {
+			case "ACAO ENVIADA COM SUCESSO":
+				fmt.Println("Comando Enviado com Sucesso")
+			case "ATUADOR NÃO ENCONTRADO":
+				fmt.Println("Erro ao enviar comando: Atuador " + id + "não encontrado")
+			}
 
 		}
 

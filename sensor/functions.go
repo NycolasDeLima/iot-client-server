@@ -8,9 +8,13 @@ func mudarEstado(tipoSensor string) string {
 
 	var estados []string
 
-	if tipoSensor == "bpm" {
+	switch tipoSensor {
+	case "bpm":
 		estados = []string{"repouso", "atividade", "taquicardia", "bradicardia"}
+	case "spo2":
+		estados = []string{"normal", "leve", "moderado", "critico"}
 	}
+
 	return estados[rand.Intn(len(estados))]
 }
 
@@ -39,6 +43,33 @@ func ajustarBPM(atual int, estado string) int {
 	atual += rand.Intn(3) - 1
 
 	return limitar(atual, 40, 180)
+}
+
+func ajustarSpO2(atual int, estado string) int {
+	var alvo int
+
+	switch estado {
+	case "normal":
+		alvo = 98
+	case "leve":
+		alvo = 93
+	case "moderado":
+		alvo = 88
+	case "critico":
+		alvo = 82
+	}
+
+	// aproxima suavemente do alvo
+	if atual < alvo {
+		atual += rand.Intn(2)
+	} else if atual > alvo {
+		atual -= rand.Intn(2)
+	}
+
+	// pequeno ruído
+	atual += rand.Intn(3) - 1
+
+	return limitar(atual, 70, 100)
 }
 
 func limitar(valor, min, max int) int {

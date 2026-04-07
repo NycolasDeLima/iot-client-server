@@ -1,14 +1,15 @@
 package main
 
 import (
-	"bufio"
+	//"bufio"
 	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net"
 	"os"
 	"strconv"
-	"strings"
+
+	//"strings"
 	"time"
 )
 
@@ -20,7 +21,7 @@ type Mensagem struct {
 
 func main() {
 
-	input := bufio.NewReader(os.Stdin)
+	//input := bufio.NewReader(os.Stdin)
 
 	serverAddrUDP, err := net.ResolveUDPAddr("udp", "server:8080")
 	if err != nil {
@@ -37,9 +38,8 @@ func main() {
 		dado     int
 		estado   string
 		handlers = map[string]func(int, string) int{
-			"bpm": ajustarBPM,
-			//"admin":  tratarAdmin,
-			//"user":   tratarUser,
+			"bpm":  ajustarBPM,
+			"spo2": ajustarSpO2,
 		}
 	)
 
@@ -47,14 +47,18 @@ func main() {
 
 	msg.Tipo = "SENSOR"
 
-	fmt.Println("Digite o tipo de Sensor: ")
+	if len(os.Args) < 3 {
+		fmt.Println("Uso: go run main.go <tipoSensor> <id>")
+		return
+	}
 
-	tipoSensor, _ := input.ReadString('\n')
-	tipoSensor = strings.TrimSpace(tipoSensor)
+	tipoSensor := os.Args[1]
+	id := os.Args[2]
 
-	fmt.Println("\nDigite um id para o Sensor: ")
-	id, _ := input.ReadString('\n')
-	id = strings.TrimSpace(id)
+	if tipoSensor != "bpm" && tipoSensor != "spo2" {
+		fmt.Println("Tipo inválido! Use bpm ou spo2")
+		return
+	}
 
 	msg.ID = tipoSensor + "_" + id
 
@@ -63,6 +67,10 @@ func main() {
 	case "bpm":
 		dado = 75
 		estado = "repouso"
+
+	case "spo2":
+		dado = 98
+		estado = "normal"
 	}
 
 	for {
