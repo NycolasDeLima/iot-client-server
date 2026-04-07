@@ -14,20 +14,13 @@ func tratarAlarme(msg string) {
 
 		ativo = true
 
-		fmt.Println("ALARME CRÍTICO ATIVADO")
-
 		idx = strings.Index(msg, ":")
 		if idx != -1 {
 			motivo = msg[idx+2:]
 		}
-		fmt.Println("Motivo: ", motivo)
-
-		// simula sirene
-		for i := 0; i < 3; i++ {
-			fmt.Println("BEEP BEEP BEEP")
-		}
 
 		estado = motivo
+
 	} else if strings.Contains(msg, "DESLIGAR ALARME") {
 		ativo = false
 		estado = "DESLIGADO"
@@ -54,21 +47,18 @@ func tratarVMI(msg string) {
 		switch modo {
 		case "MODO CONTROLADO":
 
-			fmt.Println("VMI LIGADA EM MODO CONTROLADO")
 			ativo = true
-			estado = modo
+			estado = "VMI LIGADA EM MODO CONTROLADO"
 
 		case "MODO ASSISTO-CONTROLADO":
 
-			fmt.Println("VMI LIGADA EM MODO ASSISTO-CONTROLADO")
 			ativo = true
-			estado = modo
+			estado = "VMI LIGADA EM MODO ASSISTO-CONTROLADO"
 
 		case "MODO ESPONTÂNEO":
 
-			fmt.Println("VMI LIGADA EM MODO ESPONTÂNEO")
-			ativo = false
-			estado = modo
+			ativo = true
+			estado = "VMI LIGADA EM MODO ESPONTÂNEO"
 
 		default:
 			fmt.Println("COMANDO NÃO IDENTIFICADO")
@@ -79,4 +69,38 @@ func tratarVMI(msg string) {
 		ativo = false
 		estado = "DESLIGADA"
 	}
+}
+
+func limparTela() {
+	fmt.Print("\033[H\033[2J")
+}
+
+func exibirAtuador(tipo, id, estado string, ativo bool, conectado bool) {
+	limparTela()
+
+	fmt.Println("====================================")
+	fmt.Println("        PAINEL DO ATUADOR")
+	fmt.Println("====================================")
+
+	fmt.Printf("Tipo: %s\n", tipo)
+	fmt.Printf("ID:   %s\n", id)
+
+	if !conectado {
+		fmt.Printf("Status: DESCONECTADO\n")
+	} else {
+		fmt.Printf("Status: CONECTADO\n")
+	}
+
+	fmt.Println("------------------------------------")
+
+	if ativo {
+		fmt.Printf("Ativo: SIM\n")
+	} else {
+		fmt.Printf("Ativo: NÃO\n")
+	}
+
+	fmt.Println("------------------------------------")
+	fmt.Printf("Mensagem:%s \n", estado)
+
+	fmt.Println("====================================")
 }

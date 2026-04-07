@@ -41,9 +41,9 @@ func enviar(conn net.Conn, id string, dado string, acao string) error {
 	return nil
 }
 
-func conectar() net.Conn {
+func conectar(serverIP string) net.Conn {
 	for {
-		conn, err := net.Dial("tcp", "server:8000")
+		conn, err := net.Dial("tcp", serverIP)
 		if err != nil {
 			fmt.Println("Conectando...")
 			time.Sleep(1 * time.Second)
@@ -63,15 +63,14 @@ func main() {
 		"vmi":    tratarVMI,
 	}
 
-	msg.Tipo = "SENSOR"
-
-	if len(os.Args) < 3 {
-		fmt.Println("Uso: go run main.go <tipoAtuador> <id>")
+	if len(os.Args) < 4 {
+		fmt.Println("Uso: go run main.go <tipoSensor> <id> <serverIP>")
 		return
 	}
 
 	tipo := os.Args[1]
-	id := os.Args[2]
+	id1 := os.Args[2]
+	serverIP := os.Args[3]
 
 	switch tipo {
 
@@ -88,14 +87,14 @@ func main() {
 		return
 	}
 
-	conn := conectar()
+	conn := conectar(serverIP)
 	defer conn.Close()
 
 	fmt.Println("Conectado ao servidor: ", conn.LocalAddr().String())
 
 	reader := bufio.NewReader(conn)
 
-	id = tipo + "_" + id
+	id := tipo + "_" + id1
 
 	err := enviar(conn, id, estado, "nil")
 	if err != nil {
@@ -123,7 +122,7 @@ func main() {
 		if errCon {
 			fmt.Println("Servidor Desconectado. Tentando Reconexão")
 			conn.Close()
-			conn = conectar()
+			conn = conectar(serverIP)
 			reader = bufio.NewReader(conn)
 
 			err := enviar(conn, id, estado, "nil")
@@ -151,6 +150,8 @@ func main() {
 			continue
 		}
 
+		exibirAtuador(tipo, id1, estado, ativo, errCon)
+
 		buffer, err := reader.ReadString('\n')
 		if err != nil {
 			errCon = true
@@ -163,8 +164,6 @@ func main() {
 			continue
 		}
 
-		fmt.Println("Recebido:", msg.Dado)
-
 		if handler, ok := handlers[tipo]; ok {
 			handler(msg.Dado)
 		}
@@ -175,8 +174,5 @@ func main() {
 			continue
 		}
 
-		if ativo {
-			fmt.Println(estado)
-		}
 	}
 }

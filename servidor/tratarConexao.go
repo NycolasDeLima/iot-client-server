@@ -31,7 +31,7 @@ func tratarSensor(msg MensagemUDP, clientAddr *net.UDPAddr) {
 	_, ok := sensores[msg.ID]
 
 	if !ok {
-		fmt.Println("Sensor "+msg.ID+"Conectado: ", clientAddr)
+		fmt.Println("Sensor "+msg.ID+" Conectado: ", clientAddr)
 	}
 
 	sensores[msg.ID] = sensor
@@ -220,8 +220,6 @@ func tratarConexaoTcp(conn net.Conn) {
 
 	var msg MensagemTCP
 
-	addr := conn.RemoteAddr().String()
-	fmt.Println("Cliente conectado: ", addr)
 
 	reader := bufio.NewReader(conn)
 

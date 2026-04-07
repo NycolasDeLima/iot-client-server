@@ -21,18 +21,6 @@ type Mensagem struct {
 
 func main() {
 
-	//input := bufio.NewReader(os.Stdin)
-
-	serverAddrUDP, err := net.ResolveUDPAddr("udp", "server:8080")
-	if err != nil {
-		panic(err)
-	}
-
-	conn, err := net.DialUDP("udp", nil, serverAddrUDP)
-	if err != nil {
-		panic(err)
-	}
-
 	var (
 		msg      Mensagem
 		dado     int
@@ -43,17 +31,16 @@ func main() {
 		}
 	)
 
-	defer conn.Close()
-
 	msg.Tipo = "SENSOR"
 
-	if len(os.Args) < 3 {
-		fmt.Println("Uso: go run main.go <tipoSensor> <id>")
+	if len(os.Args) < 4 {
+		fmt.Println("Uso: go run main.go <tipoSensor> <id> <serverIP>")
 		return
 	}
 
 	tipoSensor := os.Args[1]
 	id := os.Args[2]
+	serverIP := os.Args[3]
 
 	if tipoSensor != "bpm" && tipoSensor != "spo2" {
 		fmt.Println("Tipo inválido! Use bpm ou spo2")
@@ -73,11 +60,22 @@ func main() {
 		estado = "normal"
 	}
 
+	serverAddrUDP, err := net.ResolveUDPAddr("udp", serverIP)
+	if err != nil {
+		panic(err)
+	}
+
+	conn, err := net.DialUDP("udp", nil, serverAddrUDP)
+	if err != nil {
+		panic(err)
+	}
+
+	defer conn.Close()
+
 	for {
 
 		if rand.Float64() < 0.01 {
 			estado = mudarEstado(tipoSensor)
-			fmt.Println("Mudou estado para:", estado)
 		}
 
 		if handler, ok := handlers[tipoSensor]; ok {
@@ -91,6 +89,8 @@ func main() {
 		conn.Write([]byte(jsondata))
 
 		time.Sleep(100 * time.Millisecond)
+
+		exibirPainel(tipoSensor, msg.ID, dado, estado)
 	}
 
 }

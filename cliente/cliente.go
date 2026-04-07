@@ -62,9 +62,9 @@ func enviar(conn net.Conn, id string, dado string, acao string) error {
 	return nil
 }
 
-func conectar() net.Conn {
+func conectar(serverIP string) net.Conn {
 	for {
-		conn, err := net.Dial("tcp", "server:8000")
+		conn, err := net.Dial("tcp", serverIP)
 		if err != nil {
 			fmt.Println("Conectando...")
 			time.Sleep(1 * time.Second)
@@ -87,14 +87,19 @@ func main() {
 		errCon      bool = false
 	)
 
-	fmt.Print("Digite um id: ")
-	fmt.Scanln(&idCliente)
+	if len(os.Args) < 3 {
+		fmt.Println("Uso: go run main.go <id> <serverIP>")
+		return
+	}
+
+	idCliente = os.Args[1]
+	serverIP := os.Args[2]
 
 	idCliente = "CLIENTE_" + idCliente
 
 	fmt.Println("Conectando ao Servidor...")
 
-	conn := conectar()
+	conn := conectar(serverIP)
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -127,7 +132,7 @@ func main() {
 		if errCon {
 			fmt.Println("Servidor Desconectado. Tentando Reconexão")
 			conn.Close()
-			conn = conectar()
+			conn = conectar(serverIP)
 			reader = bufio.NewReader(conn)
 
 			err := enviar(conn, idCliente, "nil", "nil")
@@ -209,7 +214,7 @@ func main() {
 			}
 
 			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
-			fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Tipo", "Dado", "UltimoVisto")
+			fmt.Printf("%-10s | %-15s | %-15s | %-10s\n", "ID", "Tipo", "Dado", "UltimoVisto")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, sensor := range lista {

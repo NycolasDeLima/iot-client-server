@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"fmt"
 )
 
 func mudarEstado(tipoSensor string) string {
@@ -80,4 +81,29 @@ func limitar(valor, min, max int) int {
 		return max
 	}
 	return valor
+}
+
+func exibirPainel(tipo, id string, dado int, estado string) {
+	limparTela()
+
+	fmt.Println("====================================")
+	fmt.Println("        MONITOR DE SENSOR")
+	fmt.Println("====================================")
+	fmt.Printf("Tipo do Sensor : %s\n", tipo)
+	fmt.Printf("ID             : %s\n", id)
+	fmt.Printf("Estado         : %s\n", estado)
+	fmt.Println("------------------------------------")
+
+	switch tipo {
+	case "bpm":
+		fmt.Printf("Frequência Cardíaca: %d BPM\n", dado)
+	case "spo2":
+		fmt.Printf("Oxigenação (SpO2): %d%%\n", dado)
+	}
+
+	fmt.Println("====================================")
+}
+
+func limparTela() {
+	fmt.Print("\033[H\033[2J")
 }
