@@ -5,7 +5,7 @@ typea ?= "vmi"
 portudp ?= 8080
 porttcp ?= 8000
 
-
+.PHONY: broker sensor atuador cliente compose_sensor compose_atuador compose_cliente compose_broker
 
 compose_sensor:
 	for i in $$(seq 1 $(N)); do \
