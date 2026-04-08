@@ -85,7 +85,7 @@ func exibirAtuador(tipo, id, estado string, ativo bool, conectado bool) {
 	fmt.Printf("Tipo: %s\n", tipo)
 	fmt.Printf("ID:   %s\n", id)
 
-	if !conectado {
+	if conectado {
 		fmt.Printf("Status: DESCONECTADO\n")
 	} else {
 		fmt.Printf("Status: CONECTADO\n")
@@ -100,7 +100,7 @@ func exibirAtuador(tipo, id, estado string, ativo bool, conectado bool) {
 	}
 
 	fmt.Println("------------------------------------")
-	fmt.Printf("Mensagem:%s \n", estado)
+	fmt.Printf("Mensagem: %s \n", estado)
 
 	fmt.Println("====================================")
 }

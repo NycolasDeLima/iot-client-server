@@ -1,5 +1,5 @@
-n ?= 5
-ip ?= "localhost"
+N ?= 5
+ip ?= localhost
 types ?= "bpm"
 typea ?= "vmi"
 portudp ?= 8080
@@ -37,7 +37,7 @@ atuador:
 
 cliente:
 	cd cliente && for i in $$(seq 1 $(N)); do \
-		docker run cliente ./app $$i; $(ip)\
+		docker run -it cliente ./app $$i $(ip); \
 	done
 
 broker:

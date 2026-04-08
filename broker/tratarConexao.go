@@ -99,6 +99,8 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 				continue
 			}
 
+			log.Println("Dispositivo ", id, ": ", "Ação ", msg.Acao, " ", msg.ID)
+
 		} else if msg.Acao == ListarSensores {
 
 			var lista []string
@@ -107,8 +109,6 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 			for idSensor := range sensores {
 				lista = append(lista, idSensor)
 			}
-
-			log.Println(lista)
 
 			data, _ := json.Marshal(sensores)
 
@@ -119,6 +119,8 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 				log.Println("Erro ao enviar ao Cliente ", id, ":", err)
 				continue
 			}
+
+			log.Println("Dispositivo ", id, ": ", "Lista de Sensores")
 
 		} else if msg.Acao == ListarAtuadores {
 
@@ -141,9 +143,9 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 			if err != nil {
 				log.Println("Erro ao enviar ao Cliente ", id, ":", err)
 				continue
-			} else {
-				log.Println("Lista de atuadores enviada ao cliente ", id)
 			}
+
+			log.Println("Dispositivo ", id, ": ", "Lista Atuadores")
 
 		} else if msg.Acao == VerDadoSensor {
 
@@ -167,7 +169,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 			inscritos[sensorID] = append(inscritos[sensorID], conn)
 			mutex.Unlock()
 
-			log.Println("Cliente inscrito no sensor:", sensorID)
+			log.Println("Cliente ", id, "inscrito no sensor:", sensorID)
 
 		} else if msg.Acao == RemoverInscrito {
 
@@ -175,7 +177,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			removerCliente(conn, msg.Dado)
 
-			log.Println("Cliente removido do sensor:", sensorID)
+			log.Println("Cliente", id, "removido do sensor:", sensorID)
 		}
 	}
 }
