@@ -66,7 +66,7 @@ func main() {
 
 func servidorUDP() {
 
-	addrUDP, err := net.ResolveUDPAddr("udp", ":8080")
+	addrUDP, err := net.ResolveUDPAddr("udp", ":5000")
 	if err != nil {
 		panic(err)
 	}

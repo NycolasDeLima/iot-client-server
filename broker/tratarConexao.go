@@ -55,6 +55,8 @@ func tratarSensor(msg MensagemUDP, clientAddr *net.UDPAddr) {
 func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 	defer conn.Close()
 
+	log.Println("Dispositivo Conectado: ", id)
+
 	for {
 
 		buffer, err := reader.ReadString('\n')
@@ -185,7 +187,7 @@ func tratarAtuador(id string, conn net.Conn, reader *bufio.Reader) {
 		removerAtuador(id)
 	}()
 
-	log.Println("Atuador conectado: ", id)
+	log.Println("Dispositivo Conectado: ", id)
 
 	for {
 		buffer, err := reader.ReadString('\n')
