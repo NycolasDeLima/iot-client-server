@@ -3,13 +3,12 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net"
 	"time"
 )
 
 const (
-	//ENVIAR
 	ListarSensores  = "LISTAR SENSORES"
 	ListarAtuadores = "LISTAR ATUADORES"
 	AcaoAtuador     = "ACAO ATUADOR"
@@ -31,7 +30,7 @@ func tratarSensor(msg MensagemUDP, clientAddr *net.UDPAddr) {
 	_, ok := sensores[msg.ID]
 
 	if !ok {
-		fmt.Println("Sensor "+msg.ID+" Conectado: ", clientAddr)
+		log.Println("Sensor "+msg.ID+" Conectado: ", clientAddr)
 	}
 
 	sensores[msg.ID] = sensor
@@ -46,7 +45,7 @@ func tratarSensor(msg MensagemUDP, clientAddr *net.UDPAddr) {
 
 		err := enviar(conn, msg.ID, string(data), "DADO SENSOR")
 		if err != nil {
-			fmt.Println("Erro ao enviar broadcast")
+			log.Println("Erro ao enviar broadcast")
 		}
 
 	}
@@ -60,7 +59,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 		buffer, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Cliente", id, "desconectado")
+			log.Println("Aplicação Desconectada: ", id)
 			removerCliente(conn, "nil")
 			return
 		}
@@ -69,7 +68,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 		err = json.Unmarshal([]byte(buffer), &msg)
 		if err != nil {
-			fmt.Println("Erro JSON cliente ", id, ":", err)
+			log.Println("Erro JSON cliente ", id, ":", err)
 			continue
 		}
 
@@ -86,7 +85,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			err := enviar(atuadorConn, msg.ID, msg.Dado, msg.Acao)
 			if err != nil {
-				fmt.Println("Erro ao enviar ao atuador ", id, ":", err)
+				log.Println("Erro ao enviar ao atuador ", id, ":", err)
 				continue
 			}
 
@@ -94,7 +93,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			err = enviar(conn, msg.ID, "ACAO ENVIADA COM SUCESSO", msg.Acao)
 			if err != nil {
-				fmt.Println("Erro ao enviar cliente ", id, ":", err)
+				log.Println("Erro ao enviar cliente ", id, ":", err)
 				continue
 			}
 
@@ -103,11 +102,11 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 			var lista []string
 
 			mutex.RLock()
-			for id := range sensores {
-				lista = append(lista, id)
+			for idSensor := range sensores {
+				lista = append(lista, idSensor)
 			}
 
-			fmt.Println(lista)
+			log.Println(lista)
 
 			data, _ := json.Marshal(sensores)
 
@@ -115,7 +114,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			err := enviar(conn, "nil", string(data), msg.Acao)
 			if err != nil {
-				fmt.Println("Erro ao enviar ao Cliente ", id, ":", err)
+				log.Println("Erro ao enviar ao Cliente ", id, ":", err)
 				continue
 			}
 
@@ -129,16 +128,19 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 				lista = append(lista, id)
 			}
 
-			fmt.Println(lista)
+			log.Println(lista)
 
 			data, _ := json.Marshal(atuadores)
 
 			mutex.RUnlock()
 
 			err := enviar(conn, "nil", string(data), msg.Acao)
+
 			if err != nil {
-				fmt.Println("Erro ao enviar ao Cliente ", id, ":", err)
+				log.Println("Erro ao enviar ao Cliente ", id, ":", err)
 				continue
+			} else {
+				log.Println("Lista de atuadores enviada ao cliente ", id)
 			}
 
 		} else if msg.Acao == VerDadoSensor {
@@ -153,7 +155,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 				err := enviar(conn, "nil", "SENSOR NÃO ENCONTRADO", msg.Acao)
 				if err != nil {
-					fmt.Println("Erro ao enviar ao Cliente ", id, ":", err)
+					log.Println("Erro ao enviar ao Cliente ", id, ":", err)
 					continue
 				}
 				continue
@@ -163,7 +165,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 			inscritos[sensorID] = append(inscritos[sensorID], conn)
 			mutex.Unlock()
 
-			fmt.Println("Cliente inscrito no sensor:", sensorID)
+			log.Println("Cliente inscrito no sensor:", sensorID)
 
 		} else if msg.Acao == RemoverInscrito {
 
@@ -171,7 +173,7 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 			removerCliente(conn, msg.Dado)
 
-			fmt.Println("Cliente removido do sensor:", sensorID)
+			log.Println("Cliente removido do sensor:", sensorID)
 		}
 	}
 }
@@ -183,12 +185,12 @@ func tratarAtuador(id string, conn net.Conn, reader *bufio.Reader) {
 		removerAtuador(id)
 	}()
 
-	fmt.Println("Atuador conectado: ", id)
+	log.Println("Atuador conectado: ", id)
 
 	for {
 		buffer, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Atuador desconectado: ", id)
+			log.Println("Dispositivo Desconectado: ", id)
 			return
 		}
 
@@ -196,11 +198,11 @@ func tratarAtuador(id string, conn net.Conn, reader *bufio.Reader) {
 
 		err = json.Unmarshal([]byte(buffer), &msg)
 		if err != nil {
-			fmt.Println("Erro ao Ler Dados do Json")
+			log.Println("Erro ao Ler Dados do Json")
 			continue
 		}
 
-		fmt.Println("Recebido:", msg.Acao)
+		log.Println("Recebido:", msg.Acao)
 
 		mutex.Lock()
 
@@ -220,7 +222,6 @@ func tratarConexaoTcp(conn net.Conn) {
 
 	var msg MensagemTCP
 
-
 	reader := bufio.NewReader(conn)
 
 	buffer, err := reader.ReadString('\n')
@@ -230,7 +231,7 @@ func tratarConexaoTcp(conn net.Conn) {
 
 	err = json.Unmarshal([]byte(buffer), &msg)
 	if err != nil {
-		fmt.Println("JSON inválido:", err)
+		log.Println("JSON inválido:", err)
 		return
 	}
 

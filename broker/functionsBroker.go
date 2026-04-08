@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net"
 	"time"
 )
+
+// ============= Remove Dispositivos ===============
 
 func removerAtuador(id string) {
 	mutex.Lock()
@@ -14,7 +16,7 @@ func removerAtuador(id string) {
 	delete(atuadoresConn, id)
 	delete(atuadores, id)
 
-	fmt.Println("Atuador desconectado: ", id)
+	log.Println("Dispositivo Desconectado: ", id)
 }
 
 func removerSensor() {
@@ -24,14 +26,14 @@ func removerSensor() {
 		mutex.Lock()
 		for id, sensor := range sensores {
 			if time.Since(sensor.UltimoVisto) > 5*time.Second {
-				fmt.Println("Sensor desconectado: ", id)
+				log.Println("Dispositivo Desconectado: ", id)
 				delete(sensores, id)
 
 				listaClientes := inscritos[sensor.ID]
 				for _, conn := range listaClientes {
 					err := enviar(conn, "nil", "SENSOR DESCONECTADO", "nil")
 					if err != nil {
-						fmt.Println("Erro ao enviar ao Cliente ", id, ":", err)
+						log.Println("Erro ao enviar ao Cliente ", id, ":", err)
 						continue
 					}
 				}
@@ -42,25 +44,6 @@ func removerSensor() {
 
 		mutex.Unlock()
 	}
-}
-
-func enviar(conn net.Conn, id string, dado string, acao string) error {
-
-	msg := MensagemTCP{
-		Tipo: "SERVIDOR",
-		ID:   id,
-		Dado: dado,
-		Acao: acao,
-	}
-
-	data, _ := json.Marshal(msg)
-
-	_, err := conn.Write([]byte(string(data) + "\n"))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func removerCliente(conn net.Conn, sensorID string) {
@@ -99,4 +82,25 @@ func removerCliente(conn net.Conn, sensorID string) {
 
 		inscritos[sensorID] = novaLista
 	}
+}
+
+// ============= Monta Mensagem E Envia ================
+
+func enviar(conn net.Conn, id string, dado string, acao string) error {
+
+	msg := MensagemTCP{
+		Tipo: "SERVIDOR",
+		ID:   id,
+		Dado: dado,
+		Acao: acao,
+	}
+
+	data, _ := json.Marshal(msg)
+
+	_, err := conn.Write([]byte(string(data) + "\n"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

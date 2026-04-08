@@ -10,8 +10,9 @@ import (
 	"time"
 )
 
+// ============= Constantes ===============
+
 const (
-	//ENVIAR
 	ListarSensores  = "LISTAR SENSORES"
 	ListarAtuadores = "LISTAR ATUADORES"
 	AcaoAtuador     = "ACAO ATUADOR"
@@ -19,7 +20,7 @@ const (
 	RemoverInscrito = "REMOVER INSCRITO"
 )
 
-// ================= structs ====================
+// ================= Protocolo de Comunicação ====================
 
 type MensagemTCP struct {
 	Tipo string `json:"tipo"`
@@ -27,21 +28,6 @@ type MensagemTCP struct {
 	Dado string `json:"dado"`
 	Acao string `json:"acao"`
 }
-
-type Sensor struct {
-	Tipo        string `json:"tipo"`
-	ID          string `json:"id"`
-	Dado        string `json:"dado"`
-	UltimoVisto time.Time
-}
-
-type Atuador struct {
-	Tipo   string `json:"tipo"`
-	ID     string `json:"id"`
-	Status string `json:"status"`
-}
-
-// ======================== functions ============
 
 func enviar(conn net.Conn, id string, dado string, acao string) error {
 
@@ -62,6 +48,23 @@ func enviar(conn net.Conn, id string, dado string, acao string) error {
 	return nil
 }
 
+// ============= Structs ===============
+
+type Sensor struct {
+	Tipo        string `json:"tipo"`
+	ID          string `json:"id"`
+	Dado        string `json:"dado"`
+	UltimoVisto time.Time
+}
+
+type Atuador struct {
+	Tipo   string `json:"tipo"`
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
+// ============= Conecta com o Servidor ===============
+
 func conectar(serverIP string) net.Conn {
 	for {
 		conn, err := net.Dial("tcp", serverIP)
@@ -76,7 +79,7 @@ func conectar(serverIP string) net.Conn {
 	}
 }
 
-// =============== main
+// ============= Cliente ===============
 
 func main() {
 
@@ -207,19 +210,20 @@ func main() {
 			var sensorID string
 			var sensorTipo string
 
-			idx := strings.Index(msg.ID, "_")
-			if idx != -1 {
-				sensorTipo = msg.ID[:idx]
-				sensorID = msg.ID[idx+1:]
-			}
-
 			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
-			fmt.Printf("%-10s | %-15s | %-15s | %-10s\n", "ID", "Tipo", "Dado", "UltimoVisto")
+			fmt.Printf("%-10s | %-15s | %-15s | %-10s\n", "Tipo", "ID", "Dado", "UltimoVisto")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, sensor := range lista {
+
+				idx := strings.Index(sensor.ID, "_")
+				if idx != -1 {
+					sensorTipo = sensor.ID[:idx]
+					sensorID = sensor.ID[idx+1:]
+				}
+
 				fmt.Printf("%-10s | %-15s | %-15s | %-10s\n",
-					sensorID, sensorTipo, sensor.Dado, sensor.UltimoVisto.Format("15:04:05"),
+					sensorTipo, sensorID, sensor.Dado, sensor.UltimoVisto.Format("15:04:05"),
 				)
 			}
 
@@ -337,19 +341,20 @@ func main() {
 			var atuadID string
 			var atuadTipo string
 
-			idx := strings.Index(msg.ID, "_")
-			if idx != -1 {
-				atuadTipo = msg.ID[:idx]
-				atuadID = msg.ID[idx+1:]
-			}
-
 			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
-			fmt.Printf("%-10s | %-15s | %-15s\n", "ID", "Tipo", "Status")
+			fmt.Printf("%-10s | %-15s | %-15s\n", "Tipo", "ID", "Status")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, atuador := range lista {
+
+				idx := strings.Index(atuador.ID, "_")
+				if idx != -1 {
+					atuadTipo = atuador.ID[:idx]
+					atuadID = atuador.ID[idx+1:]
+				}
+
 				fmt.Printf("%-10s | %-15s | %-15s\n",
-					atuadID, atuadTipo, atuador.Status,
+					atuadTipo, atuadID, atuador.Status,
 				)
 			}
 
@@ -462,6 +467,13 @@ func main() {
 			case "ATUADOR NÃO ENCONTRADO":
 				fmt.Println("Erro ao enviar comando: Atuador " + id + "não encontrado")
 			}
+
+		case "5":
+			fmt.Println("Encerrando cliente...")
+			return
+
+		default:
+			fmt.Println("\nOpção inválida!")
 
 		}
 

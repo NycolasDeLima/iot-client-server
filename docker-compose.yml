@@ -1,7 +1,7 @@
 services:
 
-  server:
-    build: ./servidor
+  broker:
+    build: ./broker
     ports:
       - "8080:8080"
       - "8000:8000"
@@ -9,20 +9,20 @@ services:
   sensor:
     build: ./sensor
     depends_on:
-      - server
+      - broker
     stdin_open: true
     tty: true
 
   atuador:
     build: ./atuador
     depends_on:
-      - server
+      - broker
     stdin_open: true
     tty: true
 
   cliente:
     build: ./cliente
     depends_on:
-      - server
+      - broker
     stdin_open: true
     tty: true

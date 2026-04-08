@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -21,7 +21,7 @@ var (
 	mutex sync.RWMutex
 )
 
-// =============     struct      ====================
+// =============     Protocolo de Comunicação      =============
 
 type MensagemTCP struct {
 	Tipo string `json:"tipo"`
@@ -36,6 +36,8 @@ type MensagemUDP struct {
 	Dado string `json:"dado"`
 }
 
+// =============     Structs      =============
+
 type Sensor struct {
 	Tipo        string `json:"tipo"`
 	ID          string `json:"id"`
@@ -49,17 +51,18 @@ type Atuador struct {
 	Status string `json:"status"`
 }
 
-// ========= tratar ============
-
-// ============ utilitario =============
+// =============     Broker      =============
 
 func main() {
+
 	go servidorUDP()
 	go servidorTcp()
 
-	fmt.Println("Servidor iniciado (UDP:8080 | TCP:8000)")
+	log.Println("Broker iniciado (UDP:8080 | TCP:8000)")
 	select {}
 }
+
+// =============      Broker UDP     =============
 
 func servidorUDP() {
 
@@ -84,13 +87,13 @@ func servidorUDP() {
 		var msg MensagemUDP
 		n, clientAddr, err := connUDP.ReadFromUDP(buffer)
 		if err != nil {
-			fmt.Println("Erro:", err)
+			log.Println("Erro:", err)
 			continue
 		}
 
 		err = json.Unmarshal(buffer[:n], &msg)
 		if err != nil {
-			fmt.Println("JSON inválido:", err)
+			log.Println("JSON inválido:", err)
 			continue
 		}
 
@@ -98,6 +101,8 @@ func servidorUDP() {
 
 	}
 }
+
+// =============      Broker TCP     =================
 
 func servidorTcp() {
 
@@ -109,7 +114,7 @@ func servidorTcp() {
 	for {
 		conn, err := listenner.Accept()
 		if err != nil {
-			fmt.Println("Erro:", err)
+			log.Println("Erro:", err)
 			continue
 		}
 
