@@ -51,6 +51,23 @@ Formato das mensagens (JSON):
 
 ---
 
+## 📂 Estrutura do Projeto
+
+```bash
+iot-client-server/
+│
+├── broker/            # Serviço central 
+│
+├── cliente/           # Aplicação cliente (interface e comandos)
+│
+├── sensor/            # Simulação de sensores (BPM e SpO2)
+│
+├── atuador/           # Simulação de atuadores (alarme e VMI)
+│
+├── Makefile           # Automação de execução dos containers
+└── README.md          # Documentação do projeto
+```
+
 ## 🚀 Como Executar
 
 ### Pré-requisitos
@@ -161,9 +178,11 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 
 **OBS**: Todos os containers criados através do Makefile, com exceção do broker são executados em segundo plano.
 
-### 🔹 5. Exemplos de Uso
+---
 
-**SENSOR**
+## Exemplos de Uso
+
+### SENSOR
 
 - BPM:
 
@@ -173,7 +192,7 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 
 <img width="310" height="174" alt="image" src="https://github.com/user-attachments/assets/83936cc3-dda3-4640-a8f6-94ac72e396e8" />
 
-**ATUADOR**
+### ATUADOR
 
 - VMI:
 
@@ -188,7 +207,7 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 <img width="350" height="183" alt="image" src="https://github.com/user-attachments/assets/eb6a6514-99a6-419d-9108-1a0b96a9c40c" />
 
 
-**CLIENTE**
+### CLIENTE
 
 - Listar Sensores Conectados:
 
@@ -216,7 +235,7 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 
 <img width="528" height="121" alt="image" src="https://github.com/user-attachments/assets/04db5e4e-758b-43ac-82e2-b60ad05b11e1" />
 
-**BROKER**
+### BROKER
 
 - Dispositivos conectados:
 
