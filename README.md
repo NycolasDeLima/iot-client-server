@@ -253,6 +253,8 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 
 <img width="662" height="21" alt="image" src="https://github.com/user-attachments/assets/20315168-c718-441c-b886-32277c5d3d44" />
 
+---
+
 ## ⚠️ Limitações
 
 - Possível perda de pacotes no uso de UDP
