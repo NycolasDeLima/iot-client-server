@@ -90,7 +90,7 @@ func main() {
 
 		time.Sleep(500 * time.Millisecond)
 
-		exibirPainel(tipoSensor, msg.ID, dado, estado)
+		exibirPainel(tipoSensor, id, dado, estado)
 	}
 
 }
