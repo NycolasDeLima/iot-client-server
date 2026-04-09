@@ -117,7 +117,6 @@ func main() {
 
 	for {
 
-		conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
 
 		if errCon {
 			exibirAtuador(tipo, id1, estado, ativo, errCon)
