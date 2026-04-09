@@ -117,7 +117,7 @@ func main() {
 
 	for {
 
-		conn.SetReadDeadline(time.Now().Add(1 * time.Minute))
+		conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
 
 		if errCon {
 			exibirAtuador(tipo, id1, estado, ativo, errCon)
@@ -168,7 +168,7 @@ func main() {
 			handler(msg.Dado)
 		}
 
-		err = enviar(conn, tipo, estado, "nil")
+		err = enviar(conn, id, estado, "nil")
 		if err != nil {
 			errCon = true
 			continue
