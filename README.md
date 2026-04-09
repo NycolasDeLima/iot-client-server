@@ -55,17 +55,26 @@ Formato das mensagens (JSON):
 
 ```bash
 iot-client-server/
-│
-├── broker/            # Serviço central 
-│
-├── cliente/           # Aplicação cliente (interface e comandos)
-│
-├── sensor/            # Simulação de sensores (BPM e SpO2)
-│
-├── atuador/           # Simulação de atuadores (alarme e VMI)
-│
-├── Makefile           # Automação de execução dos containers
-└── README.md          # Documentação do projeto
+├── .github/workflows/       
+├── atuador/                 
+│   ├── atuador.go
+│   ├── Dockerfile           
+│   ├── functionsAtuador.go  
+│   └── go.mod               
+├── broker/                  
+│   ├── broker.go            
+│   ├── Dockerfile           
+│   ├── go.mod               
+│   └── ...                  
+├── cliente/                 
+│   ├── cliente.go           
+│   └── Dockerfile
+├── sensor/                  
+│   ├── sensor.go            
+│   └── Dockerfile
+├── docker-compose.yml       
+├── makefile                 
+└── README.md                
 ```
 
 ## 🚀 Como Executar
