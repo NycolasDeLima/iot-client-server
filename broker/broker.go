@@ -121,8 +121,6 @@ func servidorTcp(portTCP string) {
 		panic(err)
 	}
 
-	log.Println("TCP Addr: " + listenner.Addr().String())
-
 	for {
 		conn, err := listenner.Accept()
 		if err != nil {
