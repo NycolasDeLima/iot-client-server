@@ -164,11 +164,12 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 ### 🔹 5. Exemplos de Uso
 
 **SENSOR**
+
 - BPM:
 
 <img width="822" height="180" alt="image" src="https://github.com/user-attachments/assets/27b247bb-4ebc-4edc-8f40-98114720cfab" />
 
--SpO2:
+- SpO2:
 
 <img width="310" height="174" alt="image" src="https://github.com/user-attachments/assets/83936cc3-dda3-4640-a8f6-94ac72e396e8" />
 
@@ -207,6 +208,7 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 - Enviar Comando ao Atuador:
 
 <img width="404" height="442" alt="image" src="https://github.com/user-attachments/assets/8ccc4f54-871a-41e2-bf4c-6662b20330ad" />
+
 <img width="532" height="236" alt="image" src="https://github.com/user-attachments/assets/cf2ff82f-4e57-4ebb-96ce-57ee82f53378" />
 
 
@@ -229,6 +231,7 @@ make atuador N=<N> ip=<serverIP> types=<typeAtuador> udp=<portUDP>
 - Ações Cliente:
 
 <img width="662" height="21" alt="image" src="https://github.com/user-attachments/assets/5f5371e2-247d-432e-b559-326fa4c62b6f" />
+
 <img width="662" height="21" alt="image" src="https://github.com/user-attachments/assets/20315168-c718-441c-b886-32277c5d3d44" />
 
 ## ⚠️ Limitações
