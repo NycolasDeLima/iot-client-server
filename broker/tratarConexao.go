@@ -240,7 +240,7 @@ func tratarAtuador(id string, conn net.Conn, reader *bufio.Reader) {
 			continue
 		}
 
-		log.Println("Recebido:", msg.Acao)
+		log.Println("Dispositivo ", msg.ID, " Atualizado: ", msg.Dado)
 
 		mutex.Lock()
 
