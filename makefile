@@ -43,7 +43,7 @@ atuador:
 
 cliente:
 	cd cliente && for i in $$(seq 1 $(N)); do \
-		docker run -it cliente ./app $$i $(ip):$(tcp); \
+		docker run -d cliente ./app $$i $(ip):$(tcp); \
 	done
 
 broker:
