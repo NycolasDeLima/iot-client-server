@@ -137,7 +137,7 @@ func main() {
 
 	for {
 
-		conn.SetReadDeadline(time.Now().Add(1 * time.Minute))
+		conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
 
 		if errCon {
 			limparTela()
@@ -199,7 +199,7 @@ func main() {
 				continue
 			}
 
-			fmt.Println("Aguardando mensagem do servidor...")
+			fmt.Println("\nAguardando mensagem do servidor...")
 
 			buffer, err := reader.ReadString('\n')
 			if err != nil {
@@ -224,7 +224,7 @@ func main() {
 			var sensorID string
 			var sensorTipo string
 
-			fmt.Printf("%-10s | %-15s | %-15s | %-10s\n", "Tipo", "ID", "Dado", "UltimoVisto")
+			fmt.Printf("\n%-10s | %-15s | %-15s | %-10s\n", "Tipo", "ID", "Dado", "UltimoVisto")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, sensor := range lista {
@@ -271,6 +271,8 @@ func main() {
 				errCon = true
 				continue
 			}
+
+			fmt.Println("\nAguardando mensagem do servidor...")
 
 			stopChan := make(chan bool)
 			done := make(chan bool)
@@ -350,7 +352,7 @@ func main() {
 				continue
 			}
 
-			fmt.Println("Aguardando mensagem do servidor...")
+			fmt.Println("\nAguardando mensagem do servidor...")
 
 			buffer, err := reader.ReadString('\n')
 			if err != nil {
@@ -375,7 +377,7 @@ func main() {
 			var atuadID string
 			var atuadTipo string
 
-			fmt.Printf("%-10s | %-15s | %-15s\n", "Tipo", "ID", "Status")
+			fmt.Printf("\n%-10s | %-15s | %-15s\n", "Tipo", "ID", "Status")
 			fmt.Println("----------------------------------------------------------")
 
 			for _, atuador := range lista {
@@ -482,7 +484,7 @@ func main() {
 				continue
 			}
 
-			fmt.Println("Enviando mensagem ao servidor...")
+			fmt.Println("\nEnviando mensagem ao servidor...")
 
 			buffer, err := reader.ReadString('\n')
 			if err != nil {
