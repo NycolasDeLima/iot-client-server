@@ -1,11 +1,17 @@
-N ?= 5
+N ?= 1
 ip ?= localhost
-types ?= "bpm"
-typea ?= "vmi"
-portudp ?= 8080
-porttcp ?= 8000
+types ?= bpm
+typea ?= vmi
+udp ?= 8080
+tcp ?= 8000
 
 .PHONY: broker sensor atuador cliente compose_sensor compose_atuador compose_cliente compose_broker
+
+build:
+	cd sensor && docker build -t sensor .
+	cd atuador && docker build -t atuador .
+	cd cliente && docker build -t cliente .
+	cd broker && docker build -t broker .
 
 compose_sensor:
 	for i in $$(seq 1 $(N)); do \
@@ -41,4 +47,4 @@ cliente:
 	done
 
 broker:
-	cd broker && docker run -p $(portudp):$(portudp) -p $(porttcp):$(porttcp) broker
+	cd broker && docker run -p $(udp):$(udp)/udp -p $(tcp):$(tcp)/tcp broker ./app $(udp) $(tcp)

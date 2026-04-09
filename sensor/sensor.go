@@ -88,7 +88,7 @@ func main() {
 
 		conn.Write([]byte(jsondata))
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 
 		exibirPainel(tipoSensor, msg.ID, dado, estado)
 	}

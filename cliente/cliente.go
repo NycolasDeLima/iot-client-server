@@ -79,6 +79,10 @@ func conectar(serverIP string) net.Conn {
 	}
 }
 
+func limparTela() {
+	fmt.Print("\033[H\033[2J")
+}
+
 // ============= Cliente ===============
 
 func main() {
@@ -86,6 +90,7 @@ func main() {
 	var (
 		idCliente   string
 		tipoAtuador string
+		tipoSensor  string
 		msg         MensagemTCP
 		errCon      bool = false
 	)
@@ -210,7 +215,6 @@ func main() {
 			var sensorID string
 			var sensorTipo string
 
-			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
 			fmt.Printf("%-10s | %-15s | %-15s | %-10s\n", "Tipo", "ID", "Dado", "UltimoVisto")
 			fmt.Println("----------------------------------------------------------")
 
@@ -229,17 +233,35 @@ func main() {
 
 		case "2":
 
+			fmt.Println("\n===== TIPO DO Sensor =====")
+			fmt.Println("1 - bpm")
+			fmt.Println("2 - SpO2")
+			fmt.Print("Escolha o tipo do Sensor: ")
+			tipoSensor, _ = input.ReadString('\n')
+			tipoSensor = strings.TrimSpace(tipoSensor)
+
+			switch tipoSensor {
+
+			case "1":
+				tipoSensor = "bpm"
+
+			case "2":
+				tipoSensor = "spo2"
+
+			default:
+				fmt.Println("\nOpção inválida!")
+				continue
+			}
+
 			fmt.Println("\nDigite o id do Sensor: ")
 			dado, _ := input.ReadString('\n')
-			dado = strings.TrimSpace(dado)
+			dado = tipoSensor + "_" + strings.TrimSpace(dado)
 
 			err = enviar(conn, idCliente, dado, VerDadoSensor)
 			if err != nil {
 				errCon = true
 				continue
 			}
-
-			fmt.Println("\nLendo dados do sensor... Aperte ENTER para sair")
 
 			stopChan := make(chan bool)
 			done := make(chan bool)
@@ -283,7 +305,11 @@ func main() {
 							continue
 						}
 
-						fmt.Printf("Sensor %s | Dado: %s | Hora: %s\n",
+						limparTela()
+
+						fmt.Println("\nLendo dados do sensor... Aperte ENTER para sair")
+
+						fmt.Printf("Sensor: %s | Dado: %s | Hora: %s\n",
 							sensor.ID,
 							sensor.Dado,
 							sensor.UltimoVisto.In(time.Local).Format("15:04:05"),
@@ -328,8 +354,6 @@ func main() {
 				continue
 			}
 
-			// var lista []string
-
 			var lista map[string]Atuador
 
 			err = json.Unmarshal([]byte(msg.Dado), &lista)
@@ -341,7 +365,6 @@ func main() {
 			var atuadID string
 			var atuadTipo string
 
-			//fmt.Printf("%-5s | %-15s | %-15s | %-10s\n", "ID", "Nome", "Tipo", "Status")
 			fmt.Printf("%-10s | %-15s | %-15s\n", "Tipo", "ID", "Status")
 			fmt.Println("----------------------------------------------------------")
 

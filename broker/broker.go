@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -55,18 +57,26 @@ type Atuador struct {
 
 func main() {
 
-	go servidorUDP()
-	go servidorTcp()
+	if len(os.Args) < 3 {
+		fmt.Println("Uso: go run main.go <portUDP> <portTCP>")
+		return
+	}
 
-	log.Println("Broker iniciado (UDP:8080 | TCP:8000)")
+	portUDP := ":" + os.Args[1]
+	portTCP := ":" + os.Args[2]
+
+	go servidorUDP(portUDP)
+	go servidorTcp(portTCP)
+
+	log.Println("Broker iniciado (UDP" + portUDP + " | " + "TCP" + portTCP + ")")
 	select {}
 }
 
 // =============      Broker UDP     =============
 
-func servidorUDP() {
+func servidorUDP(portUDP string) {
 
-	addrUDP, err := net.ResolveUDPAddr("udp", ":5000")
+	addrUDP, err := net.ResolveUDPAddr("udp", portUDP)
 	if err != nil {
 		panic(err)
 	}
@@ -104,12 +114,14 @@ func servidorUDP() {
 
 // =============      Broker TCP     =================
 
-func servidorTcp() {
+func servidorTcp(portTCP string) {
 
-	listenner, err := net.Listen("tcp", ":8000")
+	listenner, err := net.Listen("tcp", portTCP)
 	if err != nil {
 		panic(err)
 	}
+
+	log.Println("TCP Addr: " + listenner.Addr().String())
 
 	for {
 		conn, err := listenner.Accept()
