@@ -45,12 +45,10 @@ func conectar(serverIP string) net.Conn {
 	for {
 		conn, err := net.Dial("tcp", serverIP)
 		if err != nil {
-			fmt.Println("Conectando...")
 			time.Sleep(1 * time.Second)
 			continue
 		}
 
-		fmt.Println("Conectado ao servidor.")
 		return conn
 	}
 }
@@ -119,8 +117,10 @@ func main() {
 
 	for {
 
+		conn.SetReadDeadline(time.Now().Add(1 * time.Minute))
+
 		if errCon {
-			fmt.Println("Servidor Desconectado. Tentando Reconexão")
+			exibirAtuador(tipo, id1, estado, ativo, errCon)
 			conn.Close()
 			conn = conectar(serverIP)
 			reader = bufio.NewReader(conn)

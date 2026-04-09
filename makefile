@@ -15,17 +15,17 @@ build:
 
 compose_sensor:
 	for i in $$(seq 1 $(N)); do \
-		docker compose run -d sensor ./app $(types) $$i $(ip); \
+		docker compose run -d sensor ./app $(types) $$i $(ip):$(udp); \
 	done
 
 compose_atuador:
 	for i in $$(seq 1 $(N)); do \
-		docker compose run -d atuador ./app $(typea) $$i $(ip); \
+		docker compose run -d atuador ./app $(typea) $$i $(ip):$(tcp); \
 	done
 
 compose_cliente:
 	for i in $$(seq 1 $(N)); do \
-		docker compose run cliente ./app $$i; $(ip)\
+		docker compose run cliente ./app $$i; $(ip):$(tcp)\
 	done
 
 compose_broker:
@@ -33,17 +33,17 @@ compose_broker:
 
 sensor:
 	cd sensor && for i in $$(seq 1 $(N)); do \
-		docker run -d sensor ./app $(types) $$i $(ip); \
+		docker run -d sensor ./app $(types) $$i $(ip):$(udp); \
 	done
 
 atuador:
 	cd atuador && for i in $$(seq 1 $(N)); do \
-		docker run -d atuador ./app $(typea) $$i $(ip); \
+		docker run -d atuador ./app $(typea) $$i $(ip):$(tcp); \
 	done
 
 cliente:
 	cd cliente && for i in $$(seq 1 $(N)); do \
-		docker run -it cliente ./app $$i $(ip); \
+		docker run -it cliente ./app $$i $(ip):$(tcp); \
 	done
 
 broker:

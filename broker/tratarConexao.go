@@ -2,9 +2,13 @@ package main
 
 import (
 	"bufio"
+	"cmp"
 	"encoding/json"
 	"log"
 	"net"
+	"slices"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -74,11 +78,11 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 			continue
 		}
 
+		// Ações do cliente
 		if msg.Acao == AcaoAtuador {
 
 			mutex.RLock()
 			atuadorConn, existe := atuadoresConn[msg.ID]
-			//mutex.RUnlock()
 
 			if !existe {
 				enviar(conn, msg.ID, "ATUADOR NÃO ENCONTRADO", AcaoAtuador)
@@ -103,14 +107,31 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 		} else if msg.Acao == ListarSensores {
 
-			var lista []string
+			var lista []Sensor
 
 			mutex.RLock()
-			for idSensor := range sensores {
-				lista = append(lista, idSensor)
+			for _, sensor := range sensores {
+				lista = append(lista, sensor)
 			}
 
-			data, _ := json.Marshal(sensores)
+			//Ordenação dos sensores é feita primeiro pelo prefixo (bpm, spo2) e depois pelo número (1, 2, 3)
+
+			slices.SortFunc(lista, func(a, b Sensor) int {
+
+				prefA, numAStr, _ := strings.Cut(a.ID, "_")
+				prefB, numBStr, _ := strings.Cut(b.ID, "_")
+
+				if prefA != prefB {
+					return cmp.Compare(prefA, prefB)
+				}
+
+				numA, _ := strconv.Atoi(numAStr)
+				numB, _ := strconv.Atoi(numBStr)
+
+				return cmp.Compare(numA, numB)
+			})
+
+			data, _ := json.Marshal(lista)
 
 			mutex.RUnlock()
 
@@ -124,17 +145,30 @@ func tratarCliente(id string, conn net.Conn, reader *bufio.Reader) {
 
 		} else if msg.Acao == ListarAtuadores {
 
-			var lista []string
+			var lista []Atuador
 
 			mutex.RLock()
 
-			for id := range atuadores {
-				lista = append(lista, id)
+			for _, atuador := range atuadores {
+				lista = append(lista, atuador)
 			}
 
-			log.Println(lista)
+			slices.SortFunc(lista, func(a, b Atuador) int {
 
-			data, _ := json.Marshal(atuadores)
+				prefA, numAStr, _ := strings.Cut(a.ID, "_")
+				prefB, numBStr, _ := strings.Cut(b.ID, "_")
+
+				if prefA != prefB {
+					return cmp.Compare(prefA, prefB)
+				}
+
+				numA, _ := strconv.Atoi(numAStr)
+				numB, _ := strconv.Atoi(numBStr)
+
+				return cmp.Compare(numA, numB)
+			})
+
+			data, _ := json.Marshal(lista)
 
 			mutex.RUnlock()
 

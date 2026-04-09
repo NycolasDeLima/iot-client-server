@@ -69,12 +69,10 @@ func conectar(serverIP string) net.Conn {
 	for {
 		conn, err := net.Dial("tcp", serverIP)
 		if err != nil {
-			fmt.Println("Conectando...")
 			time.Sleep(1 * time.Second)
 			continue
 		}
 
-		fmt.Println("Conectado ao servidor.")
 		return conn
 	}
 }
@@ -86,6 +84,8 @@ func limparTela() {
 // ============= Cliente ===============
 
 func main() {
+
+	loc, _ := time.LoadLocation("America/Sao_Paulo")
 
 	var (
 		idCliente   string
@@ -137,8 +137,14 @@ func main() {
 
 	for {
 
+		conn.SetReadDeadline(time.Now().Add(1 * time.Minute))
+
 		if errCon {
-			fmt.Println("Servidor Desconectado. Tentando Reconexão")
+			limparTela()
+
+			fmt.Println("----------------------------------------------------------")
+			fmt.Println("        Servidor Desconectado. Tentando Reconexão...      ")
+			fmt.Println("----------------------------------------------------------")
 			conn.Close()
 			conn = conectar(serverIP)
 			reader = bufio.NewReader(conn)
@@ -163,6 +169,11 @@ func main() {
 				fmt.Println("Conexão mal estabelecida")
 				continue
 			}
+
+			fmt.Println("----------------------------------------------------------")
+			fmt.Println("            Conectado ao Servidor com Sucesso!            ")
+			fmt.Println("----------------------------------------------------------")
+			input.ReadString('\n')
 
 			errCon = false
 			continue
@@ -202,9 +213,7 @@ func main() {
 				continue
 			}
 
-			// var lista []string
-
-			var lista map[string]Sensor
+			var lista []Sensor
 
 			err = json.Unmarshal([]byte(msg.Dado), &lista)
 			if err != nil {
@@ -277,6 +286,7 @@ func main() {
 					default:
 						buffer, err := reader.ReadString('\n')
 						if err != nil {
+							fmt.Println("Servidor Desconectado... Aperte ENTER para sair")
 							errCon = true
 							return
 						}
@@ -290,10 +300,10 @@ func main() {
 
 						switch msg.Dado {
 						case "SENSOR NÃO ENCONTRADO":
-							fmt.Println("Sensor não encontrado\nAperte ENTER para sair")
+							fmt.Println("Sensor não encontrado... Aperte ENTER para sair")
 							return
 						case "SENSOR DESCONECTADO":
-							fmt.Println("Sensor Desconectado\nAperte ENTER para sair")
+							fmt.Println("Sensor Desconectado... Aperte ENTER para sair")
 							return
 
 						}
@@ -312,7 +322,7 @@ func main() {
 						fmt.Printf("Sensor: %s | Dado: %s | Hora: %s\n",
 							sensor.ID,
 							sensor.Dado,
-							sensor.UltimoVisto.In(time.Local).Format("15:04:05"),
+							sensor.UltimoVisto.In(loc).Format("15:04:05"),
 						)
 					}
 				}
@@ -354,7 +364,7 @@ func main() {
 				continue
 			}
 
-			var lista map[string]Atuador
+			var lista []Atuador
 
 			err = json.Unmarshal([]byte(msg.Dado), &lista)
 			if err != nil {
@@ -471,6 +481,8 @@ func main() {
 				errCon = true
 				continue
 			}
+
+			fmt.Println("Enviando mensagem ao servidor...")
 
 			buffer, err := reader.ReadString('\n')
 			if err != nil {
