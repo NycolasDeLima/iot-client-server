@@ -137,7 +137,6 @@ func main() {
 
 	for {
 
-		conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
 
 		if errCon {
 			limparTela()
